@@ -89,7 +89,7 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    
+    """
     The Critic network (Q-function) for the TD3 algorithm.
     It takes a state and an action and outputs a single Q-value.
     In TD3, two Critic networks are used to reduce overestimation.
