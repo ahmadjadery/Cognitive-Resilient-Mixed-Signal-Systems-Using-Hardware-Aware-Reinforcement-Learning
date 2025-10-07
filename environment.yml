@@ -1,5 +1,3 @@
-
-```yaml
 name: ricc_hat
 channels:
   - pytorch
