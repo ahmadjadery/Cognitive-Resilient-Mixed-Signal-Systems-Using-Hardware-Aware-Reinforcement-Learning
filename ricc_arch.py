@@ -87,4 +87,27 @@ class Actor(nn.Module):
         # The final tanh activation, performed by the NLAU in the DCNU
         return torch.tanh(x)
 
-# (The Critic class would be defined similarly)
+
+class Critic(nn.Module):
+    """
+    The Critic network (Q-function) for the TD3 algorithm.
+    It takes a state and an action and outputs a single Q-value.
+    In TD3, two Critic networks are used to reduce overestimation.
+    """
+    def __init__(self, state_dim, action_dim):
+        super(Critic, self).__init__()
+        # The input to the first layer is the state and action concatenated
+        self.layer_1 = nn.Linear(state_dim + action_dim, 32)
+        self.layer_2 = nn.Linear(32, 24)
+        self.layer_3 = nn.Linear(24, 1) # Outputs a single Q-value
+
+    def forward(self, state, action):
+        # Concatenate state and action to form the input
+        x = torch.cat([state, action], 1)
+        
+        # In this implementation, for simplicity, we assume the critic runs on an
+        # ideal digital co-processor and does not use the stochastic_forward_pass.
+        # A more complex model could also apply HAT to the critic.
+        x = torch.relu(self.layer_1(x))
+        x = torch.relu(self.layer_2(x))
+        return self.layer_3(x)
