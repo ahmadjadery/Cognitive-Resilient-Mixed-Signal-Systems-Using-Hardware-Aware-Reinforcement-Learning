@@ -7,7 +7,7 @@ import numpy as np
 # on a non-ideal ReRAM crossbar array.
 
 def stochastic_forward_pass(weights, inputs):
-    
+    """
     Simulates a forward pass through one layer of a ReRAM-based AIMC core.
 
     Args:
@@ -16,7 +16,7 @@ def stochastic_forward_pass(weights, inputs):
 
     Returns:
         torch.Tensor: The quantized, noisy output vector.
-    
+    """
     # Ensure inputs are tensors for torch operations
     if not isinstance(inputs, torch.Tensor):
         inputs = torch.tensor(inputs, dtype=torch.float32)
