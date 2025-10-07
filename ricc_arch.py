@@ -7,7 +7,7 @@ import numpy as np
 # on a non-ideal ReRAM crossbar array.
 
 def stochastic_forward_pass(weights, inputs):
-    """
+    
     Simulates a forward pass through one layer of a ReRAM-based AIMC core.
 
     Args:
@@ -16,7 +16,7 @@ def stochastic_forward_pass(weights, inputs):
 
     Returns:
         torch.Tensor: The quantized, noisy output vector.
-    """
+    
     # Ensure inputs are tensors for torch operations
     if not isinstance(inputs, torch.Tensor):
         inputs = torch.tensor(inputs, dtype=torch.float32)
@@ -89,7 +89,7 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    """
+    
     The Critic network (Q-function) for the TD3 algorithm.
     It takes a state and an action and outputs a single Q-value.
     In TD3, two Critic networks are used to reduce overestimation.
