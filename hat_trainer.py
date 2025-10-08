@@ -4,31 +4,38 @@ import numpy as np
 from ricc_arch import Actor, Critic
 
 class ReplayBuffer:
-    # ... (هذا الجزء يبقى كما هو) ...
-    def __init__(self, max_size=1e6):
-        self.storage = []
-        self.max_size = int(max_size)
+    def __init__(self, state_dim, action_dim, max_size=int(1e6)):
+        self.max_size = max_size
         self.ptr = 0
+        self.size = 0
 
-    def add(self, transition):
-        if len(self.storage) == self.max_size:
-            self.storage[self.ptr] = transition
-            self.ptr = (self.ptr + 1) % self.max_size
-        else:
-            self.storage.append(transition)
+        # Allocate memory once
+        self.state = np.zeros((max_size, state_dim))
+        self.action = np.zeros((max_size, action_dim))
+        self.next_state = np.zeros((max_size, state_dim))
+        self.reward = np.zeros((max_size, 1))
+        self.done = np.zeros((max_size, 1))
+
+    def add(self, state, action, next_state, reward, done):
+        self.state[self.ptr] = state
+        self.action[self.ptr] = action
+        self.next_state[self.ptr] = next_state
+        self.reward[self.ptr] = reward
+        self.done[self.ptr] = done
+        
+        self.ptr = (self.ptr + 1) % self.max_size
+        self.size = min(self.size + 1, self.max_size)
 
     def sample(self, batch_size):
-        ind = np.random.randint(0, len(self.storage), size=batch_size)
-        states, actions, next_states, rewards, dones = [], [], [], [], []
-        for i in ind:
-            s, a, s_prime, r, d = self.storage[i]
-            states.append(np.array(s, copy=False))
-            actions.append(np.array(a, copy=False))
-            next_states.append(np.array(s_prime, copy=False))
-            rewards.append(np.array(r, copy=False))
-            dones.append(np.array(d, copy=False))
-        return (np.array(states), np.array(actions), np.array(next_states), 
-                np.array(rewards).reshape(-1, 1), np.array(dones).reshape(-1, 1))
+        ind = np.random.randint(0, self.size, size=batch_size)
+
+        return (
+            torch.FloatTensor(self.state[ind]),
+            torch.FloatTensor(self.action[ind]),
+            torch.FloatTensor(self.next_state[ind]),
+            torch.FloatTensor(self.reward[ind]),
+            torch.FloatTensor(self.done[ind])
+        )
 
 class TD3_HAT_Agent:
     def __init__(self, state_dim, action_dim, policy_freq=2, lr_actor=1e-3, lr_critic=1e-3, discount=0.99, tau=0.005, use_hat=True):
