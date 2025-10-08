@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 # This import is needed to access the globally defined device
-from hat_trainer import device
+from utils import device
 
 def stochastic_forward_pass(weights, inputs):
     """
@@ -21,8 +21,7 @@ def stochastic_forward_pass(weights, inputs):
         torch.Tensor: The quantized, noisy output vector on the same device.
     """
     if not isinstance(inputs, torch.Tensor):
-        inputs = torch.tensor(inputs, dtype=torch.float32, device=device)
-
+        inputs = torch.tensor(inputs, dtype=torch.float32)
     # 1. ReRAM Conductance Variation (Log-Normal Distribution)
     # Models device-to-device and cycle-to-cycle programming variability.
     # The parameters (mean=0, sigma=0.12) are based on device characterization data.
