@@ -8,17 +8,18 @@ from hat_trainer import TD3_HAT_Agent, ReplayBuffer
 def main():
     # --- Hyperparameters ---
     MAX_EPISODES = 500
-    START_TRAINING = 1000  # Number of steps before training starts
+    START_TRAINING = 1000
     EXPLORATION_NOISE = 0.1
     BATCH_SIZE = 256
     
     # --- Setup ---
     env = PllEnv()
     state_dim = env.reset().shape[0]
-    action_dim = 3 # delta_icp, delta_kp, delta_ki
+    action_dim = 3
     
     agent = TD3_HAT_Agent(state_dim, action_dim, use_hat=True)
-    replay_buffer = ReplayBuffer()
+    # Update ReplayBuffer initialization
+    replay_buffer = ReplayBuffer(state_dim, action_dim) 
     
     if not os.path.exists("models"):
         os.makedirs("models")
@@ -33,26 +34,27 @@ def main():
         while not done:
             total_steps += 1
             
-            # Select action with exploration noise
-            action = agent.select_action(state)
-            noise = np.random.normal(0, EXPLORATION_NOISE, size=action_dim)
-            action = (action + noise).clip(-1, 1)
+            action = (
+                agent.select_action(state)
+                + np.random.normal(0, EXPLORATION_NOISE, size=action_dim)
+            ).clip(-1, 1)
 
-            # Perform action
             next_state, reward, done, _ = env.step(action)
-            replay_buffer.add((state, action, next_state, reward, float(done)))
+            
+            # Update how data is added to the buffer
+            replay_buffer.add(state, action, next_state, reward, float(done))
             
             state = next_state
             episode_reward += reward
 
-            # Train agent
             if total_steps > START_TRAINING:
                 agent.train(replay_buffer, BATCH_SIZE)
         
-        print(f"Episode: {episode}, Reward: {episode_reward:.2f}")
+        if (episode + 1) % 10 == 0:
+            print(f"Episode: {episode+1}, Total Steps: {total_steps}, Reward: {episode_reward:.2f}")
 
-    # Save the final trained model
     agent.save("models/ricc_hat_final")
+    print("Training complete. Model saved.")
 
 if __name__ == '__main__':
-    main()
+    main() # Corrected: removed extra parenthesis
