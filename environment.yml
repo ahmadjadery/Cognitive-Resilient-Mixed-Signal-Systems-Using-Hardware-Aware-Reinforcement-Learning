@@ -1,10 +1,8 @@
 name: ricc_hat
 channels:
-  - pytorch
   - defaults
 dependencies:
   - python=3.9
-  - pytorch
   - numpy
   - matplotlib
   - tqdm
