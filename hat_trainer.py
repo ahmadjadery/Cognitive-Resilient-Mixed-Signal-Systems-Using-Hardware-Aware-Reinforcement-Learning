@@ -2,9 +2,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from ricc_arch import Actor, Critic
-
-# Define the device globally, to be used by all PyTorch modules
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+from utils import device
 print(f"INFO: PyTorch is using device: {device}")
 
 # The best version of ReplayBuffer: Pre-allocated NumPy arrays for efficiency.
