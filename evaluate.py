@@ -46,7 +46,7 @@ def simulate_static_pll():
 
 def plot_results(results):
     """Plots the final results in a format similar to the paper."""
-    plt.style.use('seaborn-whitegrid')
+    plt.style.use('ggplot')
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(18, 10))
 
     # --- Plot Frequency Response ---
