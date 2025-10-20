@@ -2,13 +2,12 @@ import os
 import torch
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg') # Use the robust TkAgg backend to avoid display issues
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from pll_env import PllEnv
 from hat_trainer import TD3_HAT_Agent, device
 
 # --- CONFIGURATION ---
-# We will load the main checkpoint file saved during training.
 CHECKPOINT_FILE_TO_LOAD = os.path.join("models", "checkpoint.pth")
 # ---------------------
 
@@ -30,7 +29,7 @@ def run_simulation(agent, use_hat_in_actor):
                 state_tensor = torch.FloatTensor(state.reshape(1, -1)).to(device)
                 action = agent.actor(state_tensor, use_hat=use_hat_in_actor).cpu().data.numpy().flatten()
             else:
-                action = np.zeros(2)
+                action = np.zeros(2) 
             
             state, _, done, _ = env.step(action)
             
@@ -38,7 +37,6 @@ def run_simulation(agent, use_hat_in_actor):
             phase_error_history.append(env.phase_error)
             time_history.append(env.time * 1e6)
             
-    # --- CRITICAL FIX: Return a dictionary, not a tuple ---
     return {
         "time": time_history,
         "freq": freq_history,
@@ -77,22 +75,19 @@ def plot_results(results):
 if __name__ == '__main__':
     results = {}
     
-    # --- Load the trained agent ---
     env = PllEnv()
     state_dim = env.reset().shape[0]
-    action_dim = 2 # Matches the latest main.py and pll_env.py
+    action_dim = 2
     
     agent = TD3_HAT_Agent(state_dim, action_dim, use_hat=True)
     try:
-        # Tell the load function this is for evaluation only
-        agent.load(CHECKPOINT_FILE_TO_LOAD, evaluate=True) 
+        agent.load(CHECKPOINT_FILE_TO_LOAD, evaluate=True)
         print(f"Successfully loaded model from checkpoint: {CHECKPOINT_FILE_TO_LOAD}")
     except FileNotFoundError:
         print(f"ERROR: Could not find checkpoint file '{CHECKPOINT_FILE_TO_LOAD}'.")
         print("Please run main.py to train and save a model first.")
         exit()
 
-    # --- Run Simulations ---
     print("Simulating RICC-HAT (policy performance with hardware noise)...")
     results["hat"] = run_simulation(agent, use_hat_in_actor=True)
 
@@ -100,9 +95,7 @@ if __name__ == '__main__':
     results["ideal"] = run_simulation(agent, use_hat_in_actor=False)
     
     print("Simulating STATIC PLL...")
-    # We pass 'None' for the agent, which tells run_simulation to use zero-action
     results["static"] = run_simulation(agent=None, use_hat_in_actor=False)
 
-    # --- Plot Results ---
     print("Plotting results...")
     plot_results(results)
