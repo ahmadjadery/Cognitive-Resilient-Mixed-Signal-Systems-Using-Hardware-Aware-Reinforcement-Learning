@@ -63,7 +63,7 @@ class TD3_HAT_Agent:
     def select_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actor(state, use_hat=self.use_hat).cpu().data.numpy().flatten()
-
+        
     def train(self, replay_buffer, batch_size=256):
         self.total_it += 1
         state, action, next_state, reward, done = replay_buffer.sample(batch_size)
@@ -97,8 +97,35 @@ class TD3_HAT_Agent:
                 target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
             
     def save(self, filename):
-        torch.save(self.actor.state_dict(), filename + "_actor.pth")
+        """Saves the entire agent state (models and optimizers)."""
+        checkpoint = {
+            'actor_state_dict': self.actor.state_dict(),
+            'critic_1_state_dict': self.critic_1.state_dict(),
+            'critic_2_state_dict': self.critic_2.state_dict(),
+            'actor_optimizer_state_dict': self.actor_optimizer.state_dict(),
+            'critic_optimizer_state_dict': self.critic_optimizer.state_dict(),
+            'total_it': self.total_it
+        }
+        torch.save(checkpoint, filename)
+        print(f"Checkpoint saved to {filename}")
+
+    def load(self, filename, evaluate=False):
+        """Loads the agent state from a checkpoint."""
+        checkpoint = torch.load(filename, map_location=device)
+        self.actor.load_state_dict(checkpoint['actor_state_dict'])
         
-    def load(self, filename):
-        self.actor.load_state_dict(torch.load(filename + "_actor.pth", map_location=device))
+        # For evaluation, we only need the actor, but for resuming, we need everything.
+        if not evaluate:
+            self.critic_1.load_state_dict(checkpoint['critic_1_state_dict'])
+            self.critic_2.load_state_dict(checkpoint['critic_2_state_dict'])
+            self.actor_optimizer.load_state_dict(checkpoint['actor_optimizer_state_dict'])
+            self.critic_optimizer.load_state_dict(checkpoint['critic_optimizer_state_dict'])
+            self.total_it = checkpoint['total_it']
+
+        # Always load target networks after loading main networks
         self.actor_target.load_state_dict(self.actor.state_dict())
+        if not evaluate:
+            self.critic_target_1.load_state_dict(self.critic_1.state_dict())
+            self.critic_target_2.load_state_dict(self.critic_2.state_dict())
+        
+        print(f"Checkpoint loaded from {filename}")
