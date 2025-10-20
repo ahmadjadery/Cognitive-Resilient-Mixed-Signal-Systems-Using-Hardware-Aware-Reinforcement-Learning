@@ -17,32 +17,33 @@ def run_simulation(agent, use_hat_in_actor):
     state = env.reset()
     done = False
     
-    # Lists to store simulation data for plotting
     freq_history = [env.vco_freq / 1e9]
     phase_error_history = [env.phase_error]
     time_history = [env.time * 1e6]
 
-    # Set the actor model to evaluation mode (disables things like dropout if used)
     if agent:
         agent.actor.eval()
 
-    # Use torch.no_grad() for maximum speed during evaluation
     with torch.no_grad():
         while not done:
-            if agent: # If we have an agent, use it
+            if agent:
                 state_tensor = torch.FloatTensor(state.reshape(1, -1)).to(device)
                 action = agent.actor(state_tensor, use_hat=use_hat_in_actor).cpu().data.numpy().flatten()
-            else: # For STATIC_PLL, action is always zero
-                action = np.zeros(2) # The action space size is 2
+            else:
+                action = np.zeros(2)
             
             state, _, done, _ = env.step(action)
             
-            # Record data for the plot
             freq_history.append(env.vco_freq / 1e9)
             phase_error_history.append(env.phase_error)
             time_history.append(env.time * 1e6)
             
-    return time_history, freq_history, phase_error_history
+    # --- CRITICAL FIX: Return a dictionary, not a tuple ---
+    return {
+        "time": time_history,
+        "freq": freq_history,
+        "phase": phase_error_history
+    }
 
 def plot_results(results):
     plt.style.use('ggplot')
